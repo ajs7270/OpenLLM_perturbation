@@ -1,0 +1,6 @@
+[submodule "models/stanford_alpaca"]
+	path = models/stanford_alpaca
+	url = https://github.com/tatsu-lab/stanford_alpaca
+[submodule "models/llama"]
+	path = models/llama
+	url = https://github.com/facebookresearch/llama
