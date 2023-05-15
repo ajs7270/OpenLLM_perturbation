@@ -162,7 +162,7 @@ def start_later(problem, iter, prev_iter_end):
   return blk
 
 class Problem:
-    def __init__(self, problem: str, numbers: list[str], equation: Equation):
+    def __init__(self, problem: str, numbers: list[str], answer: float, equation: Equation):
         self.context = None
         self.question = None
         self.numbers = numbers
@@ -170,6 +170,7 @@ class Problem:
         self.equation = equation.getList()
         self.golden_op = equation.getOperator()
         self.golden_argument = equation.getArgument()
+        self.answer = answer
 
         if "number0" not in problem:
             problem = self.toNumProblem(problem)
@@ -319,69 +320,6 @@ def getOperatorDict(problem_list: list[Problem], operator_dict: dict) -> dict[st
                 operator_dict[e[0]] = {len(e) - 1}
     return operator_dict
 
-#mathqa preprocessing
-def preprocess_mathqa(file_path : str = "data/raw/mathqa", save_path : str = "data/processed/mathqa"):
-    train_path = Path(BASE_PATH, file_path, "train.json")
-    dev_path = Path(BASE_PATH, file_path, "dev.json")
-    test_path = Path(BASE_PATH, file_path, "test.json")
-
-    dataset_path = [train_path, dev_path, test_path]
-
-    constant_list = []
-    operator_dict = {}
-
-    max_numbers_size = 0
-    max_operators_size = 0
-
-    for path in dataset_path:
-        print(f"preprocessing {path}...")
-        with open(path, 'r') as f:
-            problem_list = []
-
-            data = json.load(f)
-            print(f"number of problems: {len(data)}")
-            for problem in data:
-                problem_text = problem["Problem"]
-                numbers = extractNum(problem["Problem"])
-                equation = Equation(problem["linear_formula"], type="formula")
-
-                problem = Problem(problem_text, numbers, equation)
-                problem_list.append(problem)
-
-                # Get Max number and operator size
-                max_numbers_size = max(max_numbers_size, len(problem.numbers))
-                max_operators_size = max(max_operators_size, len(problem.equation))
-
-        processed_path = Path(BASE_PATH, save_path, f"{path.stem}.json")
-
-        if not os.path.exists(processed_path.parent):
-            os.makedirs(processed_path.parent)
-        with open(processed_path, 'w') as f:
-            json.dump(problem_list, f, indent=4, cls=ProblemEncoder)
-
-        # Get Constant List
-        constant_list += getConstantList(problem_list)
-
-        # Get Operator Dict(key: operator name, value: list[num of operands]])
-        operator_dict = getOperatorDict(problem_list, operator_dict)
-
-    config = {}
-
-    # Save Max Number Size
-    config["max_numbers_size"] = max_numbers_size
-    config["max_operators_size"] = max_operators_size
-    # Save Constant List
-    constant_list = sorted(list(set(constant_list)))
-    config["constant_list"] = constant_list
-    # Save Operator Dict
-    operator_dict = {k: list(v) for k, v in operator_dict.items()}
-    config["operator_dict"] = operator_dict
-
-    config_list_path = Path(BASE_PATH, save_path, "config.json")
-    with open(config_list_path, 'w') as f:
-        json.dump(config, f, indent=4)
-
-
 #svamp preprocessing
 def preprocess_svamp(file_path : str = "data/raw/mawps-asdiv-a_svamp", save_path : str = "data/processed/svamp"):
     train_path = Path(BASE_PATH, file_path, "train.csv")
@@ -405,9 +343,10 @@ def preprocess_svamp(file_path : str = "data/raw/mawps-asdiv-a_svamp", save_path
         for problem in data.itertuples():
             problem_text = problem.Question
             numbers = problem.Numbers.split()
+            answer = problem.Answer
             equation = Equation(problem.Equation, type="prefix")
 
-            problem = Problem(problem_text, numbers, equation)
+            problem = Problem(problem_text, numbers, answer, equation)
             problem_list.append(problem)
 
             # Get Max number and operator size
@@ -447,5 +386,4 @@ def preprocess_svamp(file_path : str = "data/raw/mawps-asdiv-a_svamp", save_path
 #mawps preprocessing
 
 if __name__ == "__main__":
-    preprocess_mathqa("data/raw/mathqa", "data/processed/mathqa")
     preprocess_svamp("data/raw/mawps-asdiv-a_svamp", "data/processed/svamp")
