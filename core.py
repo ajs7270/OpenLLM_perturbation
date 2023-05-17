@@ -1,6 +1,7 @@
 from langchain import PromptTemplate, LLMChain
 import func_timeout
 import re
+from collections import defaultdict
 
 CoT_template = """Q: There are 15 trees in the grove. Grove workers will plant trees in the grove today. After they are done, there will be 21 trees. How many trees did the grove workers plant today?
 A: There are 15 trees originally. Then there were 21 trees after some more were planted. So there must have been 21 - 15 = 6. The answer is 6.
@@ -116,16 +117,22 @@ Q: {question}
 """
 
 
-def CoT(llm, problem):
+def CoT(llm, problem, n=1):
     prompt = PromptTemplate(template=CoT_template, input_variables=["question"])
 
     llm_chain = LLMChain(prompt=prompt, llm=llm)
     print("problem:")
-    print(prompt.format(question= problem.passage + ' ' +problem.question))
-    output = llm_chain.run(problem.passage + ' ' + problem.question)
-    print("output:")
-    print(output)
-    ans = float(re.findall(r"\d+\.\d+|\d+", output)[-1])
+    print(prompt.format(question=problem.passage + ' ' + problem.question))
+
+    answers = defaultdict(int)
+    for i in range(n):
+        output = llm_chain.run(problem.passage + ' ' + problem.question)
+        print("output:")
+        print(output)
+        ans = float(re.findall(r"\d+\.\d+|\d+", output)[-1])
+        answers[ans] += 1
+
+    ans = sorted(answers.items(), key=lambda x: x[1], reverse=True)[0][0]
 
     if ans.is_integer():
         return int(ans)
