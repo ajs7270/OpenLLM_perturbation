@@ -192,6 +192,7 @@ def PhP(llm, problem, prompt_option="PhP"):
     hint = ""
     while cnt < 100:  # Ask 100 times in maximum
         cnt += 1
+        print("Loop {}:".format(cnt))
 
         output = llm_chain.run(question + hint)
         ans = float(re.findall(r"\d+\.\d+|\d+", output)[-1])
@@ -205,6 +206,9 @@ def PhP(llm, problem, prompt_option="PhP"):
             hint += " (Hint: The answer is near to {}).".format(ans)
         else:
             hint = hint[:-2] + ", {}).".format(ans)
+
+        print("Hint:", hint)
+        print("Answer: {}".format(ans))
 
     if prev.is_integer():
         return int(prev)
