@@ -115,13 +115,14 @@ A: We know the Answer Hints: 8. With the Answer Hints: 8, we will answer the que
 Q: {question}
 """
 
+
 def CoT(llm, problem):
     prompt = PromptTemplate(template=CoT_template, input_variables=["question"])
 
     llm_chain = LLMChain(prompt=prompt, llm=llm)
     print("problem:")
     print(prompt.format(question= problem.passage + ' ' +problem.question))
-    output = llm_chain.run(problem.passage + ' ' +problem.question)
+    output = llm_chain.run(problem.passage + ' ' + problem.question)
     print("output:")
     print(output)
     ans = float(re.findall(r"\d+\.\d+|\d+", output)[-1])
@@ -176,8 +177,41 @@ def PoT(llm, problem, self_consistency=False):
     return ans
 
 
-def PhP(llm, problem):
-    pass
+def PhP(llm, problem, prompt_option="PhP"):
+
+    if prompt_option == "PhP":
+        prompt = PromptTemplate(template=PhP_template, input_variables=["question"])
+    else:
+        prompt = PromptTemplate(template=PhP_CoT_template, input_variables=["question"])
+
+    llm_chain = LLMChain(prompt=prompt, llm=llm)
+
+    prev = None
+    cnt = 0
+    question = problem.passage + ' ' + problem.question
+    hint = ""
+    while cnt < 100:  # Ask 100 times in maximum
+        cnt += 1
+
+        output = llm_chain.run(question + hint)
+        ans = float(re.findall(r"\d+\.\d+|\d+", output)[-1])
+
+        if ans == prev:
+            break
+
+        prev = ans
+
+        if cnt == 1:
+            hint += " (Hint: The answer is near to {}).".format(ans)
+        else:
+            hint = hint[:-2] + ", {}).".format(ans)
+
+    if prev.is_integer():
+        return int(prev)
+
+    return prev
+
+
 
 
 
