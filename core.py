@@ -131,6 +131,7 @@ def CoT(llm, problem, n=1):
         print(output)
         ans = float(re.findall(r"\d+\.\d+|\d+", output)[-1])
         answers[ans] += 1
+        print(answers)
 
     ans = sorted(answers.items(), key=lambda x: x[1], reverse=True)[0][0]
 
