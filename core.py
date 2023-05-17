@@ -160,7 +160,7 @@ def safe_execute(code_string: str, keys=None):
     return ans
 
 
-def PoT(llm, problem, self_consistency=False):
+def PoT(llm, problem, n=1):
     prompt = PromptTemplate(template=PoT_template, input_variables=["passage", "question"])
 
     llm_chain = LLMChain(prompt=prompt, llm=llm)
@@ -168,20 +168,22 @@ def PoT(llm, problem, self_consistency=False):
     print("problem:")
     print(prompt.format(passage=problem.passage, question=problem.question))
 
-    if not self_consistency:
-        # greedy decoding
+    answers = defaultdict(int)
+    for i in range(n):
         output = llm_chain.run(passage=problem.passage, question=problem.question)
-    else:
-        pass
-        # self-consistency decoding
-    print("output:")
-    print(output)
-    # self-consistency decoding or greedy decoding.
-    ans = safe_execute(output) #TODO should check output
-    ans = float(ans)
+        print("output:")
+        print(output)
+        ans = safe_execute(output) #TODO should check output
+        if ans:
+            ans = float(ans)
+            answers[ans] += 1
+        print(answers)
+
+    ans = sorted(answers.items(), key=lambda x: x[1], reverse=True)[0][0]
 
     if ans.is_integer():
         return int(ans)
+
     return ans
 
 
