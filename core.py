@@ -1,6 +1,6 @@
-from langchain.llms import LlamaCpp
 from langchain import PromptTemplate, LLMChain
 import func_timeout
+import re
 
 CoT_template = """Q: There are 15 trees in the grove. Grove workers will plant trees in the grove today. After they are done, there will be 21 trees. How many trees did the grove workers plant today?
 A: There are 15 trees originally. Then there were 21 trees after some more were planted. So there must have been 21 - 15 = 6. The answer is 6.
@@ -119,12 +119,16 @@ def CoT(llm, problem):
     prompt = PromptTemplate(template=CoT_template, input_variables=["question"])
 
     llm_chain = LLMChain(prompt=prompt, llm=llm)
+    print("problem:")
+    print(prompt.format(question= problem.passage + ' ' +problem.question))
     output = llm_chain.run(problem.passage + ' ' +problem.question)
-
-    ans = float(output.split()[-1][:-1])
+    print("output:")
+    print(output)
+    ans = float(re.findall(r"\d+\.\d+|\d+", output)[-1])
 
     if ans.is_integer():
         return int(ans)
+
     return ans
 
 
@@ -152,13 +156,17 @@ def PoT(llm, problem, self_consistency=False):
 
     llm_chain = LLMChain(prompt=prompt, llm=llm)
 
+    print("problem:")
+    print(prompt.format(passage=problem.passage, question=problem.question))
+
     if not self_consistency:
         # greedy decoding
-        output = llm_chain.run(problem.passage, problem.question)
+        output = llm_chain.run(passage=problem.passage, question=problem.question)
     else:
         pass
         # self-consistency decoding
-
+    print("output:")
+    print(output)
     # self-consistency decoding or greedy decoding.
     ans = safe_execute(output) #TODO should check output
     ans = float(ans)
@@ -169,7 +177,7 @@ def PoT(llm, problem, self_consistency=False):
 
 
 def PhP(llm, problem):
-
+    pass
 
 
 

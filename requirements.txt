@@ -1,2 +1,3 @@
 pandas
 langchain
+func-timeout
