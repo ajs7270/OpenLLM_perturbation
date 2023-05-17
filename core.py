@@ -179,6 +179,9 @@ def PoT(llm, problem, n=1):
             answers[ans] += 1
         print(answers)
 
+    if not answers:
+        return None
+
     ans = sorted(answers.items(), key=lambda x: x[1], reverse=True)[0][0]
 
     if ans.is_integer():
