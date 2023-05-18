@@ -1,10 +1,12 @@
 import json
+import os
 from pathlib import Path
 
 from langchain.llms import LlamaCpp
 from datasets import Dataset
 from core import CoT, PoT, PhP
 
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 MODEL_SIZE = "7B"
 
 # Load SVAMP dataset
