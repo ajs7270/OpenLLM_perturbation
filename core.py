@@ -121,17 +121,17 @@ def CoT(llm, problem, n=1):
     prompt = PromptTemplate(template=CoT_template, input_variables=["question"])
 
     llm_chain = LLMChain(prompt=prompt, llm=llm)
-    print("problem:")
-    print(prompt.format(question=problem.passage + ' ' + problem.question))
+    # print("problem:")
+    # print(prompt.format(question=problem.passage + ' ' + problem.question))
 
     answers = defaultdict(int)
     for i in range(n):
         output = llm_chain.run(problem.passage + ' ' + problem.question)
-        print("output:")
-        print(output)
+        # print("output:")
+        # print(output)
         ans = float(re.findall(r"\d+\.\d+|\d+", output)[-1])
         answers[ans] += 1
-        print(answers)
+        # print(answers)
 
     ans = sorted(answers.items(), key=lambda x: x[1], reverse=True)[0][0]
 
@@ -165,19 +165,19 @@ def PoT(llm, problem, n=1):
 
     llm_chain = LLMChain(prompt=prompt, llm=llm)
 
-    print("problem:")
-    print(prompt.format(passage=problem.passage, question=problem.question))
+    # print("problem:")
+    # print(prompt.format(passage=problem.passage, question=problem.question))
 
     answers = defaultdict(int)
     for i in range(n):
         output = llm_chain.run(passage=problem.passage, question=problem.question)
-        print("output:")
-        print(output)
+        # print("output:")
+        # print(output)
         ans = safe_execute(output) #TODO should check output
         if ans:
             ans = float(ans)
             answers[ans] += 1
-        print(answers)
+        # print(answers)
 
     if not answers:
         return None
@@ -205,7 +205,7 @@ def PhP(llm, problem, prompt_option="PhP"):
     hint = ""
     while cnt < 100:  # Ask 100 times in maximum
         cnt += 1
-        print("Loop {}:".format(cnt))
+        # print("Loop {}:".format(cnt))
 
         output = llm_chain.run(question + hint)
         ans = float(re.findall(r"\d+\.\d+|\d+", output)[-1])
@@ -220,8 +220,8 @@ def PhP(llm, problem, prompt_option="PhP"):
         else:
             hint = hint[:-2] + ", {}).".format(ans)
 
-        print("Hint:", hint)
-        print("Answer: {}".format(ans))
+        # print("Hint:", hint)
+        # print("Answer: {}".format(ans))
 
     if prev.is_integer():
         return int(prev)
