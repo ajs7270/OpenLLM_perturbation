@@ -16,6 +16,7 @@ svamp = Dataset(Path("data/SVAMP.json"))
 llm = LlamaCpp(
     model_path=f"./models/llama/{MODEL_SIZE}/ggml-model-f4.bin",
     n_ctx=2048,
+    n_gpu_layers=300,
 )
 
 CoT_correct = 0
