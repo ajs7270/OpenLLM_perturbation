@@ -129,9 +129,15 @@ def CoT(llm, problem, n=1):
         output = llm_chain.run(problem.passage + ' ' + problem.question)
         # print("output:")
         # print(output)
-        ans = float(re.findall(r"\d+\.\d+|\d+", output)[-1])
-        answers[ans] += 1
+        nums_in_output = re.findall(r"\d+\.\d+|\d+", output)
+
+        if nums_in_output:
+            ans = float(nums_in_output[-1])
+            answers[ans] += 1
         # print(answers)
+
+    if not answers:
+        return None
 
     ans = sorted(answers.items(), key=lambda x: x[1], reverse=True)[0][0]
 
@@ -208,17 +214,21 @@ def PhP(llm, problem, prompt_option="PhP"):
         # print("Loop {}:".format(cnt))
 
         output = llm_chain.run(question + hint)
-        ans = float(re.findall(r"\d+\.\d+|\d+", output)[-1])
 
-        if ans == prev:
-            break
+        nums_in_output = re.findall(r"\d+\.\d+|\d+", output)
 
-        prev = ans
+        if nums_in_output:
+            ans = float(nums_in_output[-1])
 
-        if cnt == 1:
-            hint += " (Hint: The answer is near to {}).".format(ans)
-        else:
-            hint = hint[:-2] + ", {}).".format(ans)
+            if ans == prev:
+                break
+
+            prev = ans
+
+            if cnt == 1:
+                hint += " (Hint: The answer is near to {}).".format(ans)
+            else:
+                hint = hint[:-2] + ", {}).".format(ans)
 
         # print("Hint:", hint)
         # print("Answer: {}".format(ans))
